@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
+using System.Security.Cryptography;
 using System.Threading.Tasks;
 
 namespace Eisk.Core.DataService.EFCore;
@@ -15,6 +16,7 @@ public class EntityDataService<TEntity> : IEntityDataService<TEntity> where TEnt
 
     public virtual async Task<TEntity> GetById<TId>(TId id)
     {
+
         return await DbContext.Set<TEntity>().FindAsync(id);
     }
 
@@ -32,13 +34,11 @@ public class EntityDataService<TEntity> : IEntityDataService<TEntity> where TEnt
         return obj.Entity;
     }
 
-    public virtual async Task<TEntity> Update(TEntity entity)
+    public async Task<TEntity> Update(TEntity entity)
     {
-        var obj = DbContext.Update(entity);
-
+        // Do not call DbContext.Update() since EF is already tracking the entity
         await DbContext.SaveChangesAsync();
-
-        return obj.Entity;
+        return entity;
     }
 
     public virtual async Task Delete(TEntity entity)

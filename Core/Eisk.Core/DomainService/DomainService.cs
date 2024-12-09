@@ -55,31 +55,9 @@ public class DomainService<TDomain, TId>
         return returnVal;
     }
 
-    //public virtual async Task<TDomain> Update(TId id, TDomain newEntity)
-    //{
-    //    return await Update(id, newEntity, null);
-    //}
-
-    public async Task<TDomain> Update(TId id, TDomain domain)
+    public virtual async Task<TDomain> Update(TId id, TDomain newEntity)
     {
-        // Retrieve the entity using the ID from the URL
-        var entity = await GetById(id);
-        if (entity == null) return null;
-
-        // Use reflection to set the URL ID on the entity (only if applicable)
-        var idProperty = typeof(TDomain).GetProperty("Id");
-        if (idProperty != null && idProperty.CanWrite)
-        {
-            idProperty.SetValue(domain, id);
-        }
-
-        return await Update(id, domain, null);
-
-        //_entityDataService.Update(newEntity);
-        //_entityDataService.
-        //_dbContext.Entry(entity).CurrentValues.SetValues(domain);
-        //await _dbContext.SaveChangesAsync();
-        //return entity;
+        return await Update(id, newEntity, null);
     }
 
 
@@ -88,12 +66,29 @@ public class DomainService<TDomain, TId>
         if (newEntity == null)
             ThrowExceptionForNullInputEntity();
 
-        var oldEntity = await GetById(id);
+        // Step 1: Load existing entity from the database (this is tracked by EF)
+        var existingEntity = await GetById(id);
+        if (existingEntity == null)
+            ThrowExceptionForNonExistantEntity(id);
 
-        preProcessAction?.Invoke(oldEntity, newEntity);
+        // Step 2: Pre-process hook (optional, if you need to do something before updating)
+        preProcessAction?.Invoke(existingEntity, newEntity);
 
-        var returnVal = await _entityDataService.Update(newEntity);
+        // Step 3: Update properties of existing entity (but exclude the Id)
+        var properties = typeof(TDomain).GetProperties();
+        foreach (var property in properties)
+        {
+            if (property.CanWrite && property.Name != "Id") // Do not update the Id property
+            {
+                var newValue = property.GetValue(newEntity);
+                property.SetValue(existingEntity, newValue);
+            }
+        }
 
+        // Step 4: Call the data service to persist the changes
+        var returnVal = await _entityDataService.Update(existingEntity);
+
+        // Step 5: Post-process hook (optional, if you need to do something after updating)
         postProcessAction?.Invoke(returnVal);
 
         return returnVal;

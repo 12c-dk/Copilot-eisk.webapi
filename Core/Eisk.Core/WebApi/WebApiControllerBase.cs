@@ -34,22 +34,9 @@ public abstract class WebApiControllerBase<TDomain, TId> : ControllerBase
         await DomainService.Add(domain);
     }
 
-    //[HttpPut("{id}")]
-    //public virtual async Task Put(TId id, TDomain domain)
-    //{
-    //    await DomainService.Update(id, domain);
-    //}
-
     [HttpPut("{id}")]
     public virtual async Task<IActionResult> Put(TId id, TDomain domain)
     {
-        // Use reflection to set the ID property on the domain object
-        var idProperty = typeof(TDomain).GetProperty("Id");
-        if (idProperty != null && idProperty.CanWrite)
-        {
-            idProperty.SetValue(domain, id);
-        }
-
         var updated = await DomainService.Update(id, domain);
         if (updated == null)
         {
