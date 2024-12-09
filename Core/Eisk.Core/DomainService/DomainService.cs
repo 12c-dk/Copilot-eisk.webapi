@@ -1,4 +1,5 @@
 ﻿using Eisk.Core.DataService;
+using Eisk.Core.DataService.EFCore;
 using Eisk.Core.Exceptions;
 using Eisk.Core.Utils;
 using System;
@@ -54,10 +55,33 @@ public class DomainService<TDomain, TId>
         return returnVal;
     }
 
-    public virtual async Task<TDomain> Update(TId id, TDomain newEntity)
+    //public virtual async Task<TDomain> Update(TId id, TDomain newEntity)
+    //{
+    //    return await Update(id, newEntity, null);
+    //}
+
+    public async Task<TDomain> Update(TId id, TDomain domain)
     {
-        return await Update(id, newEntity, null);
+        // Retrieve the entity using the ID from the URL
+        var entity = await GetById(id);
+        if (entity == null) return null;
+
+        // Use reflection to set the URL ID on the entity (only if applicable)
+        var idProperty = typeof(TDomain).GetProperty("Id");
+        if (idProperty != null && idProperty.CanWrite)
+        {
+            idProperty.SetValue(domain, id);
+        }
+
+        return await Update(id, domain, null);
+
+        //_entityDataService.Update(newEntity);
+        //_entityDataService.
+        //_dbContext.Entry(entity).CurrentValues.SetValues(domain);
+        //await _dbContext.SaveChangesAsync();
+        //return entity;
     }
+
 
     public virtual async Task<TDomain> Update(TId id, TDomain newEntity, Action<TDomain, TDomain> preProcessAction, Action<TDomain> postProcessAction = null)
     {

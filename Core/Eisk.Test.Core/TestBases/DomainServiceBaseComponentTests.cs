@@ -4,6 +4,8 @@ using Eisk.Test.Core.DataGen.DataFactories;
 using System;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
+using Moq;
 using Xunit;
 
 namespace Eisk.Test.Core.TestBases;
@@ -148,4 +150,31 @@ public abstract class DomainServiceBaseComponentTests<TEntity, TId> : EntityTest
         await Assert.ThrowsAsync<InvalidLookupIdParameterException<TEntity>>(() => domainService.Delete(emptyIdValue));
 
     }
+
+
+    //[Fact]
+    //public async Task Put_Should_Use_UrlId_Over_BodyId()
+    //{
+    //    // Arrange
+    //    var controller = new EmployeesController(_mockService.Object);
+    //    var urlId = 10;
+    //    var body = new Employee
+    //    {
+    //        Id = 1, // Should be ignored
+    //        Name = "John Doe",
+    //        Position = "Software Engineer"
+    //    };
+
+    //    _mockService
+    //        .Setup(s => s.Update(urlId, It.Is<Employee>(e => e.Id == urlId)))
+    //        .ReturnsAsync(body); // Simulate that update returns the updated entity
+
+    //    // Act
+    //    var result = await controller.Put(urlId, body) as OkObjectResult;
+    //    var updatedEmployee = result.Value as Employee;
+
+    //    // Assert
+    //    Assert.NotNull(result);
+    //    Assert.Equal(urlId, updatedEmployee.Id); // The URL ID should take precedence
+    //}
 }
